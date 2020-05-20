@@ -1,0 +1,56 @@
+import os, string, re
+
+configfile: "config/config.json"
+
+### Config Variables
+### ----------------------------------------------------------------------------
+
+DataFolder = config['DataFolder']
+fastx_extension = config["extension"]
+
+# Lanes
+num_lanes = int(config["Lanes"])
+lanes=[]
+for i in range(1,num_lanes+1):
+    lanes.append(f"L{i}")
+
+# Samples
+files=os.listdir(DataFolder)
+samples = set([re.sub(r"_L._R._001\.fastq\.gz", "", file) for file in files])
+
+# Full extension: Files are {sample}{extension}
+def get_extensions():
+    out = []
+    for sample in samples:
+        for file in files:
+            if sample in file:
+                tmp = re.sub(sample, "", file)
+                out.append(tmp)
+    return out
+
+extensions = set(get_extensions())
+extensions = list(filter(None, extensions))
+
+# Mate pairs (e.g. "R1" + "R2")
+mates = list(set(config["mates"].values()))
+
+# Default Illumina Extension (usually "001")
+illumina_ext = config["defaultIlluminaExt"]
+
+wildcard_constraints:
+    lane = "|".join(lanes),
+    sample = "|".join(samples)
+
+# //:# TODO: implement some tests for integrity of data / names etc.
+
+## Pipeline with pooling pool_reads
+#------------------------------------------------------------------------------
+
+rule all:
+    input: expand("analysis/01_bbma/{sample}/{sample}_{lane}_mapped_FP.fastq.gz",  lane = lanes, sample = samples)
+
+include: "rules/bbduk"
+# include: "rules/QC"
+# include: "rules/filter_host"
+# include: "rules/pool_reads"
+# include: "rules/meta_assembly"

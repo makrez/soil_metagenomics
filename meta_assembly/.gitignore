@@ -1,0 +1,9 @@
+.*
+!/.gitignore
+data/*
+analysis/trimming/result_fastqc/*
+report/*
+backup/*
+analysis/*
+test/*
+sync_all.sh

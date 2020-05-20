@@ -1,0 +1,27 @@
+{
+  "bbmap" : {
+    "bbmap_version" : "37.82",
+    "bbmap_threads" : 24,
+    "bbmap_hours": 4,
+    "bbmap_mem_mb": 48000,
+    "bbmap_reference_file": "resources/all_reads_SILVA128.fna.gz"
+   },
+  "DataFolder" : "/scratch/mkreuzer/",
+  "DataFolder_testing": "data_testing/",
+  "extension" : "fastq.gz",
+  "Lanes" : "2",
+  "mates" : {
+    "mate1" : "R1",
+    "mate2" : "R2"
+   },
+  "short_sh_commands_threads": 16,
+  "short_sh_commands_hours": 1,
+  "testing" : {
+    "testing_threads": 8,
+    "testing_hours": 1,
+    "testing_mem_mb": 16000
+   },
+  "defaultIlluminaExt": "001",
+  "host_reference": "analysis/02_filter_host/reference/reference_list.txt",
+  "eof": "true"
+}
