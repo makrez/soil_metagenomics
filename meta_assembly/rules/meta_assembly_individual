@@ -19,7 +19,7 @@ rule meta_assembly:
   shell:
     " module add vital-it/7 ;"
     " module add UHTS/Assembler/SPAdes/{params.spades} ;"
-    " spades.py "
+    " srun spades.py "
     "  --meta " # Metagenomics flag
     "  -t {threads} "
     "  -1 {input.FORWARD_POOLED} "
