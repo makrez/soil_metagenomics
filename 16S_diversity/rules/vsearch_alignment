@@ -1,0 +1,54 @@
+rule pool_reads:
+  input:
+    FORWARD=expand("analysis/01_bbmap/{{sample}}/{{sample}}_{lane}_mapped_FP.fastq.gz",
+                    lane = lanes),
+    REVERSE=expand("analysis/01_bbmap/{{sample}}/{{sample}}_{lane}_mapped_RP.fastq.gz",
+                    lane = lanes)
+  threads:
+    int(config['short_sh_commands_threads'])
+
+  resources:
+    mem_mb = int(config['short_sh_commands_mem_mb']),
+    hours = int(config['short_sh_commands_hours'])
+
+  output:
+    FORWARD_POOLED="analysis/02_vsearch/{sample}/pooled_reads_{sample}_FP.fastq.gz",
+    REVERSE_POOLED="analysis/02_vsearch/{sample}/pooled_reads_{sample}_RP.fastq.gz"
+
+  shell:
+    "srun /bin/cat {input.FORWARD} >> {output.FORWARD_POOLED} ;"
+    "srun /bin/cat {input.REVERSE} >> {output.REVERSE_POOLED} ;"
+
+
+rule vsearch_alignment:
+  input:
+    FORWARD_READS = "analysis/02_vsearch/{sample}/pooled_reads_{sample}_FP.fastq.gz",
+    REVERSE_READS = "analysis/02_vsearch/{sample}/pooled_reads_{sample}_RP.fastq.gz"
+    REFERENCE = config['bbmap']['bbmap_reference_file']
+
+  output:
+    UC_FORWARD = "analysis/02_vsearch/{sample}/{sample}_RP.uc",
+    UC_REVERSE = "analysis/02_vsearch/{sample}/{sample}_FP.uc"
+
+  params:
+    vsearch=config["vsearch"]["vsearch_version"]
+
+  threads:
+    int(config['vsearch']['vsearch_threads'])
+
+  resources:
+    mem_mb = int(config['vsearch']['vsearch_mem_mb']),
+    hours = int(config['vsearch']['vsearch_hours'])
+
+  shell:
+    " module add UHTS/Analysis/vsearch/{vserach} ;"
+    " srun vsearch --fastq_filter {input.FORWARD_READS} "
+    "  -fastaout /dev/stdout | "
+    "  vsearch --usearch_global - --db {input.REFERENCE} "
+    "  --uc {output.UC_FORWARD} "
+    "  --id 0.97 --threads {threads} ;"
+    " srun vsearch --fastq_filter {input.REVERSE_READS} "
+    "  -fastaout /dev/stdout | "
+    "  vsearch --usearch_global - --db {input.REFERENCE} "
+    "  --uc {output.UC_REVERSE} "
+    "  --id 0.97 --threads {threads} ;"

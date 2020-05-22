@@ -5,10 +5,10 @@ rule bbduk:
     REFERENCE = config['bbmap']['bbmap_reference_file']
 
   output:
-    FORWARD_MAPPED = "analysis/01_bbma/{sample}/{sample}_{lane}_mapped_FP.fastq.gz",
-    FORWARD_UNMAPPED = "analysis/01_bbma/{sample}/{sample}_{lane}_unmapped_FP.fastq.gz",
-    REVERSE_MAPPED = "analysis/01_bbma/{sample}/{sample}_{lane}_mapped_RP.fastq.gz",
-    REVERSE_UNMAPPED = "analysis/01_bbma/{sample}/{sample}_{lane}_unmapped_RP.fastq.gz"
+    FORWARD_MAPPED = "analysis/01_bbmap/{sample}/{sample}_{lane}_mapped_FP.fastq.gz",
+    FORWARD_UNMAPPED = "analysis/01_bbmap/{sample}/{sample}_{lane}_unmapped_FP.fastq.gz",
+    REVERSE_MAPPED = "analysis/01_bbmap/{sample}/{sample}_{lane}_mapped_RP.fastq.gz",
+    REVERSE_UNMAPPED = "analysis/01_bbmap/{sample}/{sample}_{lane}_unmapped_RP.fastq.gz"
 
   params:
     bbmap=config["bbmap"]["bbmap_version"]
