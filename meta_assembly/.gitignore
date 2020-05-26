@@ -1,6 +1,6 @@
 .*
 !/.gitignore
-data/*
+data_testing/*
 analysis/trimming/result_fastqc/*
 report/*
 backup/*

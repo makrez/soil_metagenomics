@@ -34,6 +34,7 @@
     "spades_version": "3.14.0",
     "spades_hours": 72,
     "spades_mem_mb":128000,
+    "spades_mem_gb":128,
     "spades_threads": 64
   },
   "short_sh_commands_threads": 16,
