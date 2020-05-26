@@ -13,7 +13,7 @@ case $i in
 esac
 done
 
-SAMPLE=$(basename $(echo ${FORWARD}) | sed 's/_FP.uc//g')
+SAMPLE=$(basename $(echo ${FORWARD}) | sed 's/_FP.uc//g' | sed 's/_//g')
 
 /bin/cat ${FORWARD} | awk -v var=$SAMPLE"_FP_" \
  '{sub("^", var, $9)};1' | sed 's/ /\t/g' > tmp_forward ;
