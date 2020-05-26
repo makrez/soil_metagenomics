@@ -12,6 +12,12 @@
      "vsearch_hours": 4,
      "vsearch_mem_mb": 48000
     },
+    "biom" : {
+      "biom_version" : "2.1.6",
+      "biom_threads" : 32,
+      "biom_hours" : 4,
+      "biom_mem_mb": 48000
+    },
   "DataFolder" : "../meta_assembly/analysis/02_filter_host/",
   "DataFolder_testing": "data_testing/",
   "extension" : "fastq.gz",

@@ -17,6 +17,7 @@ for i in range(1,num_lanes+1):
 # Samples
 files=os.listdir(DataFolder)
 samples = set([re.sub(r"_L._R._001\.fastq\.gz", "", file) for file in files])
+samples.remove("reference") # TODO: this is a hack and pipeline specific. needs to be improved
 
 # Full extension: Files are {sample}{extension}
 def get_extensions():
@@ -47,10 +48,10 @@ wildcard_constraints:
 #------------------------------------------------------------------------------
 
 rule all:
-    input: expand("analysis/01_bbma/{sample}/{sample}_{lane}_mapped_FP.fastq.gz",  lane = lanes, sample = samples)
+    input: "analysis/02_vsearch/otus.biom"
 
 include: "rules/bbduk"
-# include: "rules/QC"
+include: "rules/vsearch_alignment"
 # include: "rules/filter_host"
 # include: "rules/pool_reads"
 # include: "rules/meta_assembly"

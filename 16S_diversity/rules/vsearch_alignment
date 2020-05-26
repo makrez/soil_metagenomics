@@ -20,15 +20,14 @@ rule pool_reads:
     "srun /bin/cat {input.REVERSE} >> {output.REVERSE_POOLED} ;"
 
 
-rule vsearch_alignment:
+rule vsearch_convert:
   input:
     FORWARD_READS = "analysis/02_vsearch/{sample}/pooled_reads_{sample}_FP.fastq.gz",
-    REVERSE_READS = "analysis/02_vsearch/{sample}/pooled_reads_{sample}_RP.fastq.gz"
-    REFERENCE = config['bbmap']['bbmap_reference_file']
+    REVERSE_READS = "analysis/02_vsearch/{sample}/pooled_reads_{sample}_RP.fastq.gz",
 
   output:
-    UC_FORWARD = "analysis/02_vsearch/{sample}/{sample}_RP.uc",
-    UC_REVERSE = "analysis/02_vsearch/{sample}/{sample}_FP.uc"
+    FORWARD_FASTA = "analysis/02_vsearch/{sample}/{sample}_FP.fasta",
+    REVERSE_FASTA = "analysis/02_vsearch/{sample}/{sample}_RP.fasta"
 
   params:
     vsearch=config["vsearch"]["vsearch_version"]
@@ -41,14 +40,95 @@ rule vsearch_alignment:
     hours = int(config['vsearch']['vsearch_hours'])
 
   shell:
-    " module add UHTS/Analysis/vsearch/{vserach} ;"
+    " module add UHTS/Analysis/vsearch/{params.vsearch} ;"
     " srun vsearch --fastq_filter {input.FORWARD_READS} "
-    "  -fastaout /dev/stdout | "
-    "  vsearch --usearch_global - --db {input.REFERENCE} "
+    "  --threads {threads} -fastaout {output.FORWARD_FASTA} ;"
+    " srun vsearch --fastq_filter {input.REVERSE_READS} "
+    "  --threads {threads} -fastaout {output.REVERSE_FASTA} ;"
+
+rule vsearch_alignment:
+  input:
+    FORWARD_READS = "analysis/02_vsearch/{sample}/{sample}_FP.fasta",
+    REVERSE_READS = "analysis/02_vsearch/{sample}/{sample}_RP.fasta",
+    REFERENCE = config['bbmap']['bbmap_reference_file']
+
+  output:
+    UC_FORWARD = "analysis/02_vsearch/{sample}/{sample}_FP.uc",
+    UC_REVERSE = "analysis/02_vsearch/{sample}/{sample}_RP.uc"
+
+  params:
+    vsearch=config["vsearch"]["vsearch_version"]
+
+  threads:
+    int(config['vsearch']['vsearch_threads'])
+
+  resources:
+    mem_mb = int(config['vsearch']['vsearch_mem_mb']),
+    hours = int(config['vsearch']['vsearch_hours'])
+
+  shell:
+    " module add UHTS/Analysis/vsearch/{params.vsearch} ;"
+    " srun vsearch --usearch_global {input.FORWARD_READS} --db {input.REFERENCE} "
+    "  --threads {threads} "
     "  --uc {output.UC_FORWARD} "
     "  --id 0.97 --threads {threads} ;"
-    " srun vsearch --fastq_filter {input.REVERSE_READS} "
-    "  -fastaout /dev/stdout | "
-    "  vsearch --usearch_global - --db {input.REFERENCE} "
+    " srun vsearch --usearch_global {input.REVERSE_READS} --db {input.REFERENCE} "
+    "  --threads {threads} "
     "  --uc {output.UC_REVERSE} "
     "  --id 0.97 --threads {threads} ;"
+
+rule rename_uc_file:
+  input:
+    UC_FORWARD = "analysis/02_vsearch/{sample}/{sample}_FP.uc",
+    UC_REVERSE = "analysis/02_vsearch/{sample}/{sample}_RP.uc"
+
+  output:
+    "analysis/02_vsearch/{sample}/{sample}_conc.uc"
+
+  threads:
+    int(config['short_sh_commands_threads'])
+
+  resources:
+    mem_mb = int(config['short_sh_commands_mem_mb']),
+    hours = int(config['short_sh_commands_hours'])
+
+  shell:
+    " srun scripts/rename.sh -f={input.UC_FORWARD} -r={input.UC_REVERSE} > {output} ;"
+
+rule concatenate_uc_files:
+  input:
+    expand("analysis/02_vsearch/{sample}/{sample}_conc.uc", sample = samples)
+
+  output:
+    "analysis/02_vsearch/otus.uc"
+
+  threads:
+    int(config['short_sh_commands_threads'])
+
+  resources:
+    mem_mb = int(config['short_sh_commands_mem_mb']),
+    hours = int(config['short_sh_commands_hours'])
+
+  shell:
+    " srun /bin/cat {input} > {output} ;"
+
+rule create_biom_table:
+  input:
+    "analysis/02_vsearch/otus.uc"
+
+  output:
+    "analysis/02_vsearch/otus.biom"
+
+  params:
+    biom=config['biom']['biom_version']
+
+  threads:
+    int(config['biom']['biom_threads'])
+
+  resources:
+    mem_mb = int(config['biom']['biom_mem_mb']),
+    hours = int(config['biom']['biom_hours'])
+
+  shell:
+    " module add Utility/biom-format/{params.biom} ;"
+    " srun biom from-uc -i {input} -o {output} "

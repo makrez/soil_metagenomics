@@ -22,7 +22,7 @@ rule bbduk:
 
   shell:
     " module add UHTS/Analysis/BBMap/{params.bbmap} ;"
-    " bbduk.sh in={input.FORWARD_READS} in2={input.REVERSE_READS} "
+    " srun bbduk.sh in={input.FORWARD_READS} in2={input.REVERSE_READS} "
     "  out={output.FORWARD_UNMAPPED} out2={output.REVERSE_UNMAPPED} "
     "  outm={output.FORWARD_MAPPED} outm2={output.REVERSE_MAPPED} "
     "  ref={input.REFERENCE} ;"
