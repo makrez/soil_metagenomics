@@ -52,7 +52,11 @@ print(int(config['bowtie2']['bowtie2_ref']['bowtie2_threads']))
 print(int(config['bowtie2']['bowtie2_map']['bowtie2_threads']))
 
 
-## Pipeline with pooling pool_reads
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+## Pipeline with pooling of reads
 #------------------------------------------------------------------------------
 
 # rule all:
@@ -65,6 +69,7 @@ print(int(config['bowtie2']['bowtie2_map']['bowtie2_threads']))
 # include: "rules/meta_assembly"
 
 #-------------------------------------------------------------------------------
+
 
 ## Pipeline with individual metagenomics assembly (one meta-assembly per sample)
 #-------------------------------------------------------------------------------

@@ -1,0 +1,1 @@
+chr10.fna,chr1.fna,chr2.fna,chr3.fna,chr4.fna,chr5.fna,chr6.fna,chr7.fna,chr8.fna,chr9.fna,chrMT.fna,chrPltd.fna,unplaced.scaf.fna

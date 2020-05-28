@@ -11,10 +11,13 @@ It performs the follwing steps:
 
 2) Host removal with bowtie2
 
-Here, two different
+At this stage, two different workflows are implemented:
 
-3) Metaassembly of the genomes with metaSPAdes.
+3a) Metaassembly of the genomes with metaSPAdes using all reads from all samples
 
+3b) Metaassembly of the genomes with metaSPAdes using the reads of each sample individually.
+
+The respective workflow has to be uncommented in the snakefile
 
 ## Files
 
@@ -66,7 +69,7 @@ These parameters are used for all tools for testing purposes with a small sample
 
 The reference files have to be added manually to the pipeline.
 
-The fasta files have to be put into the folder `analysis/02_filter_host/reference` and
+The fasta files have to be put into the folder `resources/host_reference/.` and
 a text file has to be generated. The structure of the .txt file looks as follows:
 
 ```
@@ -77,7 +80,7 @@ Once the fasta files are in the folder, the easiest way to create `reference_lis
 is to run the bash command:
 
 ```
-ls | grep 'fasta' | paste -sd ',' > reference_list.txt
+ls | grep 'fna' | paste -sd ',' > reference_list.txt
 ```
 
 ## Creating the test environment
@@ -96,7 +99,7 @@ This test can be run on the IBU cluster with the command:
 ```
 cd test;
 module load Utils/snakemake
-/opt/cluster/software/Conda/miniconda/3/bin/snakemake --printshellcmds --drmaa " --partition=phshort --ntasks=1 --mem={resources.mem_mb} --cpus-per-task={threads} --time={resources.hours}:0 --mail-type=END,FAIL " --latency-wait 300 --jobs 1 --jobname <jobname>_{jobid}
+/opt/cluster/software/Conda/miniconda/3/bin/snakemake --printshellcmds --drmaa " --partition=phshort --ntasks=1 --mem={resources.mem_mb} --cpus-per-task={threads} --time={resources.hours}:0 --mail-type=END,FAIL " --latency-wait 300 --jobs 4 --jobname <jobname>_{jobid}
 ```
 
-If this test finishes successfully, the whole script can be run.
+If this test finishes successfully, the whole script can be run with the actual data.

@@ -53,6 +53,6 @@
     "mate2" : "R2"
     },
   "defaultIlluminaExt": "001",
-  "host_reference": "analysis/02_filter_host/reference/reference_list.txt",
+  "host_reference": "resources/host_reference/reference_list.txt",
   "eof": "true"
 }

@@ -1,9 +1,8 @@
 .*
 !/.gitignore
-data_testing/*
-analysis/trimming/result_fastqc/*
 report/*
 backup/*
 analysis/*
 test/*
 sync_all.sh
+resources/host_reference/*.fna
