@@ -2,3 +2,6 @@
 !/.gitignore
 sync_all.sh
 trash/*
+test/*
+.Rproj.user
+test*
