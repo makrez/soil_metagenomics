@@ -5,8 +5,8 @@ rsync -rav "Snakefile" test/.;
 rsync -rav "rules" test/.;
 rsync -rav "config" test/.;
 rsync -rav "resources" test/.;
-rsync -rav "analysis" test/.;
-rsync -rav "data_testing" test/.
+rsync -rav "data_testing" test/.;
+rsync -rav "scripts"
 
 ## replace threads/hours/mem_mb in rules
 #-------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ for i in $(ls rules); do \
 #replace mem_mb-statement
  sed "s/mem_mb.*/mem_mb = int(config['testing']['testing_mem_mb']),/g" > \
   test/rules/$i; done
-  
+
 ## replace DataFolder to DataFolder_testing in Snakefile
 #-------------------------------------------------------------------------------
 

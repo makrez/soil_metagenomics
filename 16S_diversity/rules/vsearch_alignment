@@ -46,18 +46,17 @@ rule vsearch_convert:
     " srun vsearch --fastq_filter {input.REVERSE_READS} "
     "  --threads {threads} -fastaout {output.REVERSE_FASTA} ;"
 
-rule vsearch_alignment:
+
+# Create Taxonomy gza File
+rule create_taxonomy_qza:
   input:
-    FORWARD_READS = "analysis/02_vsearch/{sample}/{sample}_FP.fasta",
-    REVERSE_READS = "analysis/02_vsearch/{sample}/{sample}_RP.fasta",
-    REFERENCE = config['bbmap']['bbmap_reference_file']
+    tax_file = "resources/taxonomy_99_all_levels_consensus.txt"
 
   output:
-    UC_FORWARD = "analysis/02_vsearch/{sample}/{sample}_FP.uc",
-    UC_REVERSE = "analysis/02_vsearch/{sample}/{sample}_RP.uc"
+    tax_gza = "analysis/02_vsearch/taxonomy.gza"
 
-  params:
-    vsearch=config["vsearch"]["vsearch_version"]
+  conda:
+    "../envs/qiime2.yaml"
 
   threads:
     int(config['vsearch']['vsearch_threads'])
@@ -66,69 +65,129 @@ rule vsearch_alignment:
     mem_mb = int(config['vsearch']['vsearch_mem_mb']),
     hours = int(config['vsearch']['vsearch_hours'])
 
-  shell:
-    " module add UHTS/Analysis/vsearch/{params.vsearch} ;"
-    " srun vsearch --usearch_global {input.FORWARD_READS} --db {input.REFERENCE} "
-    "  --threads {threads} "
-    "  --uc {output.UC_FORWARD} "
-    "  --id 0.97 --threads {threads} ;"
-    " srun vsearch --usearch_global {input.REVERSE_READS} --db {input.REFERENCE} "
-    "  --threads {threads} "
-    "  --uc {output.UC_REVERSE} "
-    "  --id 0.97 --threads {threads} ;"
+  params:
+    conda_profile = "/mnt/apps/centos7/Conda/miniconda3/etc/profile.d/conda.sh"
 
-rule rename_uc_file:
+  shell:
+    " set +u ;"
+    " source {params.conda_profile} ;"
+    " conda activate qiime2-2020.2 ;"
+    " srun qiime tools import "
+    "  --type 'FeatureData[Taxonomy]' "
+    "  --input-format HeaderlessTSVTaxonomyFormat "
+    "  --input-path {input.tax_file} "
+    "  --output-path {output.tax_gza} ;"
+
+# Create reference_reads gza File
+rule create_reference_reads_qza:
   input:
-    UC_FORWARD = "analysis/02_vsearch/{sample}/{sample}_FP.uc",
-    UC_REVERSE = "analysis/02_vsearch/{sample}/{sample}_RP.uc"
+    "resources/all_reads_SILVA128.fna.gz"
 
   output:
-    "analysis/02_vsearch/{sample}/{sample}_conc.uc"
+    "analysis/02_vsearch/reference_reads.gza"
+
+  conda:
+    "../envs/qiime2.yaml"
 
   threads:
-    int(config['short_sh_commands_threads'])
+    int(config['vsearch']['vsearch_threads'])
 
   resources:
-    mem_mb = int(config['short_sh_commands_mem_mb']),
-    hours = int(config['short_sh_commands_hours'])
-
-  shell:
-    " srun scripts/rename.sh -f={input.UC_FORWARD} -r={input.UC_REVERSE} > {output} ;"
-
-rule concatenate_uc_files:
-  input:
-    expand("analysis/02_vsearch/{sample}/{sample}_conc.uc", sample = samples)
-
-  output:
-    "analysis/02_vsearch/otus.uc"
-
-  threads:
-    int(config['short_sh_commands_threads'])
-
-  resources:
-    mem_mb = int(config['short_sh_commands_mem_mb']),
-    hours = int(config['short_sh_commands_hours'])
-
-  shell:
-    " srun /bin/cat {input} > {output} ;"
-
-rule create_biom_table:
-  input:
-    "analysis/02_vsearch/otus.uc"
-
-  output:
-    "analysis/02_vsearch/otus.biom"
+    mem_mb = int(config['vsearch']['vsearch_mem_mb']),
+    hours = int(config['vsearch']['vsearch_hours'])
 
   params:
-    biom=config['biom']['biom_version']
-
-  threads:
-    int(config['biom']['biom_threads'])
-
-  resources:
-    mem_mb = int(config['biom']['biom_mem_mb']),
-    hours = int(config['biom']['biom_hours'])
+    conda_profile = "/mnt/apps/centos7/Conda/miniconda3/etc/profile.d/conda.sh"
 
   shell:
-    " module add Utility/biom-format/{params.biom} ;"
-    " srun biom from-uc -i {input} -o {output} "
+    " set +u ;"
+    " source {params.conda_profile} ;"
+    " conda activate qiime2-2020.2 ;"
+    " srun qiime tools import "
+    "  --type 'FeatureData[Sequence]' "
+    "  --input-path {input} "
+    "  --output-path {output} ;"
+
+
+# Create query sequence artifacts
+
+rule create_query_qza:
+  input:
+    FORWARD_FASTA = "analysis/02_vsearch/{sample}/{sample}_FP.fasta",
+    REVERSE_FASTA = "analysis/02_vsearch/{sample}/{sample}_RP.fasta"
+
+  output:
+    FORWARD_qza = "analysis/02_vsearch/{sample}/{sample}_FP.qza",
+    REVERSE_qza = "analysis/02_vsearch/{sample}/{sample}_RP.qza"
+
+  conda:
+    "../envs/qiime2.yaml"
+
+  threads:
+    int(config['vsearch']['vsearch_threads'])
+
+  resources:
+    mem_mb = int(config['vsearch']['vsearch_mem_mb']),
+    hours = int(config['vsearch']['vsearch_hours'])
+
+  params:
+    conda_profile = "/mnt/apps/centos7/Conda/miniconda3/etc/profile.d/conda.sh"
+
+  shell:
+    " set +u ;"
+    " source {params.conda_profile} ;"
+    " conda activate qiime2-2020.2 ;"
+    " srun qiime tools import "
+    "  --type 'FeatureData[Sequence]' "
+    "  --input-path {input.FORWARD_FASTA} "
+    "  --output-path {output.FORWARD_qza} ;"
+    " srun qiime tools import "
+    "  --type 'FeatureData[Sequence]' "
+    "  --input-path {input.REVERSE_FASTA} "
+    "  --output-path {output.REVERSE_qza} ;"
+
+
+rule classify_reads:
+  input:
+    FORWARD_qza = "analysis/02_vsearch/{sample}/{sample}_FP.qza",
+    REVERSE_qza = "analysis/02_vsearch/{sample}/{sample}_RP.qza",
+    REFERENCE_READS = "analysis/02_vsearch/reference_reads.gza",
+    REFERENCE_TAXONOMY = "analysis/02_vsearch/taxonomy.gza"
+
+  output:
+    FORWARD_ABUNDANCE = "analysis/02_vsearch/{sample}/{sample}_FP_ABUNDANCE.qza",
+    REVERSE_ABUNDANCE = "analysis/02_vsearch/{sample}/{sample}_RP_ABUNDANCE.qza"
+
+  conda:
+    "../envs/qiime2.yaml"
+
+  threads:
+    int(config['vsearch']['vsearch_threads'])
+
+  resources:
+    mem_mb = int(config['vsearch']['vsearch_mem_mb']),
+    hours = int(config['vsearch']['vsearch_hours'])
+
+  params:
+    conda_profile = "/mnt/apps/centos7/Conda/miniconda3/etc/profile.d/conda.sh"
+
+  shell:
+    " set +u ;"
+    " source {params.conda_profile} ;"
+    " conda activate qiime2-2020.2 ;"
+    " srun qiime feature-classifier classify-consensus-vsearch "
+    "  --i-query {input.FORWARD_qza} "
+    "  --i-reference-reads {input.REFERENCE_READS} "
+    "  --i-reference-taxonomy {input.REFERENCE_TAXONOMY} "
+    "  --p-maxaccepts 10 "
+    "  --p-perc-identity 0.8 "
+    "  --p-threads {threads} "
+    "  --o-classification {output.FORWARD_ABUNDANCE} ;"
+    " srun qiime feature-classifier classify-consensus-vsearch "
+    "  --i-query {input.REVERSE_qza} "
+    "  --i-reference-reads {input.REFERENCE_READS} "
+    "  --i-reference-taxonomy {input.REFERENCE_TAXONOMY} "
+    "  --p-maxaccepts 10 "
+    "  --p-perc-identity 0.8 "
+    "  --p-threads {threads} "
+    "  --o-classification {output.FORWARD_ABUNDANCE} ;"

@@ -48,7 +48,7 @@ wildcard_constraints:
 #------------------------------------------------------------------------------
 
 rule all:
-    input: "analysis/02_vsearch/otus.biom"
+    input: expand("analysis/02_vsearch/{sample}/{sample}_FP_ABUNDANCE.qza", sample = samples)
 
 include: "rules/bbduk"
 include: "rules/vsearch_alignment"
